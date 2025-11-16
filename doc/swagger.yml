@@ -1,0 +1,124 @@
+openapi: 3.0.0
+info:
+  title: MinIO File Service
+  description: API for uploading and downloading files to/from a MinIO server.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Development server
+
+tags:
+  - name: files
+    description: File operations
+
+paths:
+  /api/upload/{bucketName}:
+    post:
+      tags:
+        - files
+      summary: Upload a file to a specified MinIO bucket
+      parameters:
+        - in: path
+          name: bucketName
+          required: true
+          schema:
+            type: string
+          description: The name of the bucket to upload the file to.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The file to upload.
+      responses:
+        '200':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Video uploaded successfully'
+                  filename:
+                    type: string
+                    example: 'my-video.mp4'
+                  size:
+                    type: integer
+                    example: 10485760
+        '400':
+          description: Bad Request - No file was uploaded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: 'No file uploaded'
+        '500':
+          description: Internal Server Error - Upload failed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Upload failed'
+
+  /api/download/{bucketName}/{objectName}:
+    get:
+      tags:
+        - files
+      summary: Download a file from a MinIO bucket
+      parameters:
+        - in: path
+          name: bucketName
+          required: true
+          schema:
+            type: string
+          description: The name of the bucket where the file is stored.
+        - in: path
+          name: objectName
+          required: true
+          schema:
+            type: string
+          description: The name of the file (object) to download.
+      responses:
+        '200':
+          description: File streamed successfully. The content-type will match the stored object.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Not Found - The specified bucket does not exist.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: 'Bucket not found'
+        '500':
+          description: Internal Server Error - Download failed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: 'Get failed'

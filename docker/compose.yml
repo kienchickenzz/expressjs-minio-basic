@@ -1,0 +1,28 @@
+services:
+    minio:
+        image: minio/minio:latest
+        container_name: minio_object_storage
+        restart: no
+        ports:
+            - "9000:9000"   # API port
+            - "9001:9001"   # Console port
+        environment:
+            MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+            MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+        volumes:
+            - ./volumes/minio:/data
+        command: server /data --console-address ":9001" # Start MinIO server with console
+        healthcheck:
+            test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9000/minio/health/live" ]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 30s
+        networks:
+            - minio
+
+networks:
+    minio:
+        driver: bridge
+        name: my_network
+        
